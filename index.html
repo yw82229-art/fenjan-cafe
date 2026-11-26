@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fenjan Café · فنجان — order your coffee by DM</title>
+<meta name="description" content="Order coffee on Messenger or Instagram in Arabic, English or Franco. An n8n + Gemini + Google Sheets automation.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Fraunces:opsz,wght@9..144,600;9..144,800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#140e0b;--pan:#201612;--pan2:#2a1d17;--line:#3b2b22;--cream:#f8eddd;--mut:#b9a594;--amb:#f2a83b;--rose:#e4604d;--mint:#6fcf97;--r:22px}
+*{box-sizing:border-box;margin:0}html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{background:var(--bg);color:var(--cream);font:400 16px/1.6 Cairo,system-ui,sans-serif;overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;z-index:-1;background:radial-gradient(900px 500px at 85% -5%,#f2a83b26,transparent 60%),radial-gradient(700px 500px at -5% 35%,#e4604d1f,transparent 60%)}
+h1,h2,h3,.serif{font-family:Fraunces,Georgia,serif;line-height:1.08;letter-spacing:-.02em}
+a{color:inherit}.wrap{max-width:1180px;margin:auto;padding:0 22px}
+nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:#140e0bcc;border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:18px;height:68px}
+.logo{display:flex;align-items:center;gap:10px;font:800 1.35rem Fraunces,serif;text-decoration:none}
+.logo i{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,var(--amb),var(--rose));display:grid;place-items:center;font-style:normal;font-size:1.1rem}
+.logo small{font:700 1.1rem Cairo;color:var(--amb)}
+.links{margin-inline:auto;display:flex;gap:4px;background:var(--pan);border:1px solid var(--line);padding:4px;border-radius:99px}
+.links a{padding:6px 16px;border-radius:99px;text-decoration:none;font-weight:600;font-size:.92rem;color:var(--mut);transition:.25s}
+.links a:hover,.links a.on{background:var(--amb);color:#2a1606}
+.pill{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:99px;padding:6px 14px;font-size:.82rem;font-weight:600;background:var(--pan)}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--mint);box-shadow:0 0 0 0 #6fcf9788;animation:pulse 2s infinite}.dot.off{background:var(--rose);animation:none}
+@keyframes pulse{70%{box-shadow:0 0 0 9px transparent}}
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;cursor:pointer;font:700 1rem Cairo;padding:13px 26px;border-radius:99px;text-decoration:none;transition:.25s;color:#2a1606;background:linear-gradient(135deg,var(--amb),#ffcf7a);box-shadow:0 10px 30px #f2a83b33}
+.btn:hover{transform:translateY(-3px);box-shadow:0 16px 36px #f2a83b55}.btn.ghost{background:none;color:var(--cream);border:1.5px solid var(--line);box-shadow:none}.btn.ghost:hover{border-color:var(--amb)}
+.hero{display:grid;grid-template-columns:1.1fr .9fr;gap:30px;align-items:center;padding:64px 0 40px}
+.eyebrow{color:var(--amb);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.78rem}
+.hero h1{font-size:clamp(2.6rem,6vw,4.6rem);margin:14px 0}.hero h1 em{font-style:normal;background:linear-gradient(90deg,var(--amb),var(--rose));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--mut);font-size:1.12rem;max-width:520px}.ar{font-family:Cairo;direction:rtl;color:var(--amb);font-weight:700;font-size:1.25rem;margin:6px 0 24px}
+.cta{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:34px}
+.stats{display:flex;gap:30px;flex-wrap:wrap}.stats b{display:block;font:800 2rem Fraunces,serif;color:var(--cream)}.stats span{font-size:.82rem;color:var(--mut)}
+.art{position:relative;height:430px;display:grid;place-items:center}
+.art:before{content:"";position:absolute;width:340px;height:340px;border-radius:50%;background:conic-gradient(from 0deg,var(--amb),var(--rose),#7b3f2a,var(--amb));filter:blur(70px);opacity:.45;animation:spin 14s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.art svg{position:relative;width:min(380px,90%);filter:drop-shadow(0 30px 40px #0008)}
+.steam path{fill:none;stroke:#f8eddd;stroke-width:5;stroke-linecap:round;opacity:0;animation:steam 3.4s ease-in infinite}.steam path:nth-child(2){animation-delay:1.1s}.steam path:nth-child(3){animation-delay:2.2s}
+@keyframes steam{0%{opacity:0;transform:translateY(14px)}35%{opacity:.7}100%{opacity:0;transform:translateY(-26px)}}
+.fl{position:absolute;padding:9px 15px;border-radius:18px;font-size:.85rem;font-weight:600;background:#2a1d17ee;border:1px solid var(--line);backdrop-filter:blur(8px);animation:fl 6s ease-in-out infinite;max-width:210px}
+.fl.a{top:6%;left:-2%}.fl.b{top:42%;right:-3%;animation-delay:-2s;background:#f2a83bf0;color:#2a1606;border:0}.fl.c{bottom:6%;left:4%;animation-delay:-4s}
+@keyframes fl{50%{transform:translateY(-14px)}}
+.mq{overflow:hidden;border-block:1px solid var(--line);background:var(--pan);padding:14px 0;margin:30px 0 0;direction:ltr}
+.mq div{display:flex;gap:44px;width:max-content;animation:mq 34s linear infinite;font:800 1.35rem Fraunces,serif;color:var(--mut)}.mq b{color:var(--amb);font-weight:400}
+@keyframes mq{to{transform:translateX(-50%)}}
+section{padding:84px 0}.sh{margin-bottom:34px}.sh h2{font-size:clamp(2rem,4vw,3rem);margin-top:8px}.sh p{color:var(--mut);max-width:620px;margin-top:10px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px;align-items:center}
+.chip{border:1.5px solid var(--line);background:none;color:var(--cream);font:600 .9rem Cairo;padding:7px 18px;border-radius:99px;cursor:pointer;transition:.2s}.chip:hover{border-color:var(--amb)}.chip.on{background:var(--amb);border-color:var(--amb);color:#2a1606}
+.tabs .sp{margin-inline-start:auto}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.card{position:relative;background:linear-gradient(160deg,var(--pan2),var(--pan));border:1px solid var(--line);border-radius:var(--r);padding:22px;transition:.3s;overflow:hidden}
+.card:hover{transform:translateY(-6px);border-color:var(--amb);box-shadow:0 20px 40px #0006}
+.card .em{font-size:2.3rem;display:block;margin-bottom:8px}.card h3{font-size:1.25rem}.card .n2{color:var(--mut);font-size:.95rem;direction:rtl;text-align:start}
+.card .pr{display:flex;justify-content:space-between;align-items:center;margin-top:14px}.card .pr b{font:800 1.5rem Fraunces,serif;color:var(--amb)}.card .pr b small{font:600 .75rem Cairo;color:var(--mut)}
+.tag{font-size:.72rem;font-weight:700;padding:3px 10px;border-radius:99px;background:#6fcf9726;color:var(--mint)}.tag.no{background:#e4604d26;color:var(--rose)}
+.demo{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:16px;align-items:stretch}
+.pn{background:var(--pan);border:1px solid var(--line);border-radius:26px;display:flex;flex-direction:column;height:640px;overflow:hidden}
+.pn>header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;background:var(--pan2)}
+.pn>header b{font:800 1.05rem Fraunces,serif;display:block}.pn>header small{color:var(--mut);font-size:.78rem}
+.av{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,var(--amb),var(--rose));display:grid;place-items:center;font-size:1.2rem}
+.body{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.m{max-width:88%;padding:10px 15px;border-radius:18px 18px 18px 5px;background:var(--pan2);border:1px solid var(--line);white-space:pre-wrap;font-size:.94rem;animation:in .35s}
+.m.me{align-self:flex-end;border-radius:18px 18px 5px 18px;background:linear-gradient(135deg,var(--amb),#ffcf7a);color:#2a1606;border:0;font-weight:600}
+.m.push{background:#6fcf9718;border-color:#6fcf9755;font-size:.9rem}.m.push:before{content:"📲 Customer notification";display:block;font-size:.7rem;color:var(--mint);font-weight:700;margin-bottom:3px}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+.ty{display:flex;gap:4px;padding:12px 16px;width:60px;background:var(--pan2);border-radius:18px;border:1px solid var(--line)}.ty i{width:7px;height:7px;border-radius:50%;background:var(--mut);animation:b 1s infinite}.ty i:nth-child(2){animation-delay:.15s}.ty i:nth-child(3){animation-delay:.3s}@keyframes b{50%{transform:translateY(-5px);background:var(--amb)}}
+.qs{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 10px}.qs .chip{font-size:.78rem;padding:5px 12px}
+form.snd{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--line)}
+form.snd input{flex:1;min-width:0;background:var(--bg);border:1.5px solid var(--line);color:var(--cream);font:inherit;padding:11px 18px;border-radius:99px;outline:0}form.snd input:focus{border-color:var(--amb)}
+form.snd .btn{padding:10px 22px}
+.log{font:500 .82rem/1.45 ui-monospace,Menlo,monospace}.st{display:flex;gap:10px;padding:9px 12px;border-radius:12px;background:var(--pan2);border:1px solid var(--line);animation:in .4s}
+.st i{color:var(--mint);font-style:normal}.st b{color:var(--amb);display:block}.st span{color:var(--mut)}
+.ph{margin:auto;text-align:center;color:var(--mut);font-size:.92rem;padding:20px}.ph span{font-size:2.4rem;display:block;opacity:.6}
+.box{background:var(--pan2);border:1px solid var(--line);border-radius:18px;padding:16px;animation:in .4s}.box h4{font:800 1rem Fraunces,serif;display:flex;justify-content:space-between;gap:8px}
+.ln{display:flex;justify-content:space-between;gap:8px;font-size:.9rem;padding:4px 0;border-bottom:1px dashed var(--line)}.tot{display:flex;justify-content:space-between;font:800 1.2rem Fraunces,serif;margin-top:10px;color:var(--amb)}
+.stp{display:flex;margin:14px 0;gap:4px}.stp i{flex:1;height:6px;border-radius:9px;background:var(--line);transition:.5s}.stp i.on{background:linear-gradient(90deg,var(--amb),var(--rose))}
+.ac{display:flex;gap:8px;flex-wrap:wrap}.ac button{flex:1;min-width:110px;border:1.5px solid var(--line);background:none;color:var(--cream);font:700 .82rem Cairo;padding:9px 10px;border-radius:12px;cursor:pointer;transition:.2s}.ac button:hover:not(:disabled){border-color:var(--amb);background:#f2a83b18}.ac button:disabled{opacity:.4;cursor:not-allowed}
+.ac .x:hover:not(:disabled){border-color:var(--rose);background:#e4604d18}
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;counter-reset:s}
+.sp2{background:var(--pan);border:1px solid var(--line);border-radius:var(--r);padding:26px;position:relative;transition:.3s}.sp2:hover{border-color:var(--amb);transform:translateY(-5px)}
+.sp2:before{counter-increment:s;content:"0" counter(s);font:800 2.6rem Fraunces,serif;color:var(--amb);opacity:.9;display:block;margin-bottom:10px}.sp2 h3{font-size:1.2rem;margin-bottom:6px}.sp2 p{color:var(--mut);font-size:.92rem}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:20px}.rules div{background:var(--pan2);border:1px solid var(--line);border-radius:16px;padding:14px 18px;font-size:.92rem}.rules b{color:var(--amb)}
+.tech{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}.tech span{padding:6px 16px;border-radius:99px;border:1px solid var(--line);color:var(--mut);font-size:.85rem;font-weight:600}
+footer{border-top:1px solid var(--line);padding:34px 0;color:var(--mut);font-size:.9rem}footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.rv{opacity:0;transform:translateY(26px);transition:.8s cubic-bezier(.2,.7,.2,1)}.rv.in{opacity:1;transform:none}
+::-webkit-scrollbar{width:7px}::-webkit-scrollbar-thumb{background:var(--line);border-radius:9px}
+@media(max-width:980px){.hero,.demo{grid-template-columns:1fr}.steps{grid-template-columns:1fr 1fr}.links{display:none}.art{height:340px}.pn{height:560px}}
+@media(max-width:560px){.steps{grid-template-columns:1fr}.pill{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+  <a class="logo" href="#home"><i>☕</i>Fenjan <small>فنجان</small></a>
+  <div class="links"><a href="#home" class="on">Home</a><a href="#menu">Menu</a><a href="#live">Live Counter</a><a href="#how">How it works</a></div>
+  <div class="pill"><span class="dot" id="dot"></span><span id="status">Connecting…</span></div>
+</div></nav>
+
+<main>
+<div class="wrap" id="home">
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Order by DM · Messenger + Instagram</div>
+      <h1>Your coffee order, <em>one message</em> away.</h1>
+      <div class="ar">اطلب قهوتك من الرسايل ☕</div>
+      <p>Type it the way you talk: Arabic, English or Franco. Gemini understands you, a Google Sheet sets every price, and the kitchen updates you live.</p>
+      <div class="cta" style="margin-top:22px"><a class="btn" href="#live">Try the live counter →</a><a class="btn ghost" href="#menu">See the menu</a></div>
+      <div class="stats"><div><b data-n="14">0</b><span>menu items</span></div><div><b data-n="3">0</b><span>languages</span></div><div><b data-n="25">0</b><span>EGP delivery</span></div><div><b data-n="42">0</b><span>n8n nodes</span></div></div>
+    </div>
+    <div class="art">
+      <svg viewBox="0 0 400 400" aria-label="Coffee cup"><defs><linearGradient id="c" x1="0" x2="1"><stop offset="0" stop-color="#fff4e3"/><stop offset="1" stop-color="#d9bfa0"/></linearGradient><linearGradient id="k" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6b3a22"/><stop offset="1" stop-color="#2b150b"/></linearGradient></defs>
+        <ellipse cx="200" cy="340" rx="165" ry="30" fill="#0006"/><ellipse cx="200" cy="322" rx="160" ry="34" fill="#e8d3b6"/><ellipse cx="200" cy="316" rx="128" ry="24" fill="#f6e6cd"/>
+        <path d="M296 196c52-8 74 34 42 62-14 12-34 20-52 24" fill="none" stroke="url(#c)" stroke-width="22" stroke-linecap="round"/>
+        <path d="M92 168h216c0 98-30 150-108 150S92 266 92 168z" fill="url(#c)"/><ellipse cx="200" cy="168" rx="108" ry="26" fill="#efdcc0"/><ellipse cx="200" cy="170" rx="94" ry="19" fill="url(#k)"/>
+        <path d="M168 170c14-8 24 8 32 0s18-8 32 0c-14 12-32 14-64 0z" fill="#d9a066" opacity=".85"/>
+        <g class="steam"><path d="M164 130c-20-26 20-40 0-72"/><path d="M200 126c-20-26 20-40 0-72"/><path d="M236 130c-20-26 20-40 0-72"/></g></svg>
+      <div class="fl a" dir="auto">عايز ٢ سبانش لاتيه، توصيل 🛵</div><div class="fl b">✅ Order F-261126-K7Q2 confirmed!</div><div class="fl c">3ayez croissant w turkish ahwa</div>
+    </div>
+  </div>
+</div>
+<div class="mq" aria-hidden="true"><div id="mq"></div></div>
+
+<section id="menu"><div class="wrap">
+  <div class="sh rv"><div class="eyebrow">Straight from the sheet</div><h2>The menu</h2><p>Every item and price below is read live from the Google Sheet the bot uses, so what you see is what the bot charges.</p></div>
+  <div class="tabs rv" id="cats"></div>
+  <div class="grid" id="grid"></div>
+</div></section>
+
+<section id="live" style="background:linear-gradient(180deg,transparent,#0000004d)"><div class="wrap">
+  <div class="sh rv"><div class="eyebrow">Real workflow · real sheet</div><h2>See the counter at work</h2><p>Chat as a customer, watch the n8n steps run, then play the kitchen and update the order. Try Arabic, English or Franco.</p></div>
+  <div class="demo rv">
+    <div class="pn"><header><div class="av">☕</div><div><b>Fenjan Café</b><small>Messenger · Instagram · Web demo</small></div><button class="chip" id="reset" style="margin-inline-start:auto;font-size:.75rem">New chat</button></header>
+      <div class="body" id="chat"><div class="m" dir="auto">Hello! Welcome to Fenjan ☕ Say "hi" to see the menu, or just type your order.
+أهلًا بيك في فنجان! اكتب طلبك بالعربي أو الإنجليزي.</div></div>
+      <div class="qs" id="qs"></div>
+      <form class="snd" id="f"><input id="msg" autocomplete="off" placeholder="Type your order…" aria-label="Message"><button class="btn" type="submit">Send</button></form></div>
+    <div class="pn"><header><div class="av" style="background:linear-gradient(135deg,#6fcf97,#2e8f5f)">⚙️</div><div><b>Execution log</b><small>What n8n did for your message</small></div></header>
+      <div class="body log" id="log"><div class="ph"><span>🧪</span>Send a message to watch the workflow run.</div></div></div>
+    <div class="pn"><header><div class="av" style="background:linear-gradient(135deg,#e4604d,#a02e22)">👩‍🍳</div><div><b>Kitchen desk</b><small>Cart, order and status</small></div></header>
+      <div class="body" id="desk"><div class="ph"><span>🧾</span>Your cart and order will appear here. Confirm an order to unlock the kitchen buttons.</div></div></div>
+  </div>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <div class="sh rv"><div class="eyebrow">Under the hood</div><h2>How one DM becomes an order</h2></div>
+  <div class="steps">
+    <div class="sp2 rv"><h3>Customer writes</h3><p>On Messenger, Instagram or this page. Arabic, English or Franco: "3ayez 2 latte".</p></div>
+    <div class="sp2 rv"><h3>Gemini reads</h3><p>The AI only understands the intent and the items. It never decides a price.</p></div>
+    <div class="sp2 rv"><h3>Sheet decides</h3><p>Prices, totals, hours and limits come from code and the Menu sheet, so nothing is invented.</p></div>
+    <div class="sp2 rv"><h3>Kitchen updates</h3><p>A Telegram alert wakes the kitchen; one form message tells the customer it is ready.</p></div>
+  </div>
+  <div class="rules rv"><div><b>25 EGP</b> delivery, pickup is free</div><div><b>8:00 → midnight</b> Cairo time to confirm</div><div><b>Max 20</b> of one item</div><div><b>Address</b> required for delivery</div><div><b>Human</b> called on Telegram for complaints</div></div>
+  <div class="tech rv"><span>n8n</span><span>Google Gemini</span><span>Google Sheets</span><span>Telegram</span><span>Meta Graph API</span></div>
+</div></section>
+</main>
+<footer><div class="wrap"><span>☕ Fenjan Café · demo project built with n8n</span><span>Made by Youssef Wael</span></div></footer>
+
+<script>
+const CONFIG={sheetId:"1AlOYp8VMdLdBvjoaHkfRxW7DhGJfPFs9ze5D6yTkOXo",webhookBase:"https://revolving-cleft-emerald.ngrok-free.dev/webhook"};
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const FALL=[["D01","Turkish Coffee","قهوة تركي","Hot drinks",45],["D02","Espresso","اسبريسو","Hot drinks",55],["D03","Cappuccino","كابتشينو","Hot drinks",75],["D04","Spanish Latte","سبانش لاتيه","Hot drinks",95],["D05","Mint Tea","شاي بالنعناع","Hot drinks",35],["C01","Iced Caramel Latte","آيس كراميل لاتيه","Cold drinks",105],["C02","Karkade (Hibiscus)","كركديه","Cold drinks",40],["C03","Fresh Mango Juice","عصير مانجو","Cold drinks",80],["B01","Cheese Croissant","كرواسون جبنة","Bakery",65],["B02","Zaatar Manousheh","مناقيش زعتر","Bakery",55],["B03","Feteer Meshaltet","فطير مشلتت","Bakery",90],["S01","Konafa Cup","كنافة كب","Sweets",85],["S02","Basbousa","بسبوسة","Sweets",50],["S03","Chocolate Cookie","كوكي شوكولاتة","Sweets",40]].map(([id,en,ar,cat,price])=>({id,en,ar,cat,price,on:true}));
+const EMO={"Hot drinks":"☕","Cold drinks":"🧊","Bakery":"🥐","Sweets":"🍯"};
+let MENU=FALL,CAT="All",SHEET=false;
+/* marquee */
+$("#mq").innerHTML=[...FALL,...FALL].map(m=>`<span>${m.en} <b>✦</b> ${m.ar} <b>✦</b></span>`).join("");
+/* menu */
+async function loadMenu(){
+  if(!CONFIG.sheetId)return setStatus(false,"Demo data");
+  try{const t=await(await fetch(`https://docs.google.com/spreadsheets/d/${CONFIG.sheetId}/gviz/tq?tqx=out:json&sheet=Menu`)).text();
+    const j=JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1));const v=c=>c&&c.v!=null?c.v:"";
+    const rows=j.table.rows.map(r=>({id:v(r.c[0]),en:v(r.c[1]),ar:v(r.c[2]),cat:v(r.c[3]),price:Number(v(r.c[4]))||0,on:/^(yes|true|1|y)$/i.test(String(v(r.c[5])||"yes"))})).filter(m=>m.id);
+    if(rows.length){MENU=rows;SHEET=true}setStatus(true,"Live · sheet connected")}catch(e){setStatus(false,"Demo data")}
+}
+function setStatus(ok,t){$("#dot").className="dot"+(ok?"":" off");$("#status").textContent=t}
+function drawMenu(){
+  const cats=["All",...new Set(MENU.map(m=>m.cat))];
+  $("#cats").innerHTML=cats.map(c=>`<button class="chip ${c===CAT?"on":""}" data-c="${esc(c)}">${EMO[c]||"✨"} ${esc(c)}</button>`).join("")+`<span class="sp tag">${SHEET?"live from Google Sheets":"sample data"}</span>`;
+  $("#grid").innerHTML=MENU.filter(m=>CAT==="All"||m.cat===CAT).map(m=>`<div class="card rv in"><span class="em">${EMO[m.cat]||"✨"}</span><h3>${esc(m.en)}</h3><div class="n2">${esc(m.ar)}</div><div class="pr"><b>${m.price} <small>EGP</small></b><span class="tag ${m.on?"":"no"}">${m.on?"available":"sold out"}</span></div></div>`).join("");
+}
+$("#cats").onclick=e=>{const b=e.target.closest("[data-c]");if(b){CAT=b.dataset.c;drawMenu()}};
+/* live counter */
+const WH=CONFIG.webhookBase.replace(/\/$/,"");
+const newSid=()=>Math.random().toString(36).slice(2,10);
+let SID;try{SID=sessionStorage.getItem("fsid")||newSid();sessionStorage.setItem("fsid",SID)}catch(e){SID=newSid()}
+let ORD=null,CART=null,BUSY=false;
+const QS=["hi","عايز ٢ سبانش لاتيه وكرواسون، توصيل","2 iced caramel latte and a zaatar manousheh, pickup","شارع ٩ المعادي عمارة ١٢","confirm","تأكيد","do you have pizza?","I want 30 basbousa"];
+$("#qs").innerHTML=QS.slice(0,6).map(q=>`<button class="chip" type="button" dir="auto">${esc(q)}</button>`).join("");
+$("#qs").onclick=e=>{if(e.target.matches(".chip")){$("#msg").value=e.target.textContent;$("#msg").focus()}};
+const hm=()=>new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit",second:"2-digit"});
+function bub(t,cls=""){const d=document.createElement("div");d.className="m "+cls;d.dir="auto";d.textContent=t;$("#chat").append(d);$("#chat").scrollTop=1e9;return d}
+function step(n,d){const l=$("#log");l.querySelector(".ph")?.remove();l.insertAdjacentHTML("beforeend",`<div class="st"><i>✓</i><div><b>${esc(n)}</b><span>${esc(d)} · ${hm()}</span></div></div>`);l.scrollTop=1e9}
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+async function api(path,body){const r=await fetch(WH+path,{method:"POST",headers:{"Content-Type":"application/json","ngrok-skip-browser-warning":"1"},body:JSON.stringify({session:SID,...body})});if(!r.ok)throw 0;return r.json()}
+function drawDesk(){
+  let h="";
+  if(CART&&CART.length&&!ORD){h+=`<div class="box"><h4>🛒 Open cart <span class="tag">saved in Carts</span></h4>${CART.map(l=>`<div class="ln"><span>${l.qty} × ${esc(l.name)}</span><span>${l.qty*l.price} EGP</span></div>`).join("")}<div class="tot"><span>Total</span><span>${CART.reduce((s,l)=>s+l.qty*l.price,0)} EGP</span></div></div>`}
+  if(ORD){const i=["new","preparing","ready","out_for_delivery"].indexOf(ORD.status),can=ORD.status!=="cancelled";
+    h+=`<div class="box"><h4>🧾 ${esc(ORD.id)} <span class="tag ${ORD.status==="cancelled"?"no":""}">${esc(ORD.status.replace(/_/g," "))}</span></h4><div class="ln"><span>${esc(ORD.items)}</span><span>${ORD.total} EGP</span></div><div class="ln"><span>${ORD.fulfilment==="delivery"?"🛵 Delivery":"🚶 Pickup"}</span><span>${esc(ORD.address||"")}</span></div>
+    <div class="stp"><i class="on"></i><i class="${i>=1?"on":""}"></i><i class="${i>=2?"on":""}"></i></div>
+    <div class="ac">${["preparing","ready"].concat(ORD.fulfilment==="delivery"?["out_for_delivery"]:[]).map(s=>`<button data-s="${s}" ${can?"":"disabled"}>${{preparing:"👩‍🍳 Preparing",ready:"☕ Ready",out_for_delivery:"🛵 Out for delivery"}[s]}</button>`).join("")}<button class="x" data-s="cancelled" ${can?"":"disabled"}>✖ Cancel</button></div></div>`}
+  $("#desk").innerHTML=h||`<div class="ph"><span>🧾</span>Your cart and order will appear here. Confirm an order to unlock the kitchen buttons.</div>`;
+}
+async function send(t){
+  if(BUSY)return;BUSY=true;bub(t,"me");$("#msg").value="";
+  const ty=document.createElement("div");ty.className="ty";ty.innerHTML="<i></i><i></i><i></i>";$("#chat").append(ty);$("#chat").scrollTop=1e9;
+  step("Web Chat Webhook","message received");
+  try{const r=await api("/fenjan-chat",{text:t});ty.remove();bub(r.reply);
+    step("Read Message",`platform = ${r.platform||"Web"}`);step("Read Menu + Find Cart","menu and cart loaded from Sheets");step("AI Read Order",`Gemini intent = ${r.intent}`);step("Decide Reply",`action = ${r.action} · prices from the sheet`);step("Route Action","→ "+r.action);
+    const A={confirm:[["Save Order",`${r.order_id} added to Orders`],["Close Cart","cart closed"],["Kitchen Alert","Telegram alert sent"]],cart:[["Save Cart",`total ${r.total} EGP saved`]],clear:[["Empty Cart","cart cleared"]],human:[["Call a Human","Telegram alert sent"]],reply:[["No write","nothing to save"]]};
+    (A[r.action]||[]).forEach(a=>step(...a));step("Web Reply","answer returned to the page");
+    let items=[];try{items=JSON.parse(r.items_json||"[]")}catch(e){}
+    if(r.action==="confirm"){ORD={id:r.order_id,status:"new",total:r.total,fulfilment:r.fulfilment,address:r.address,items:r.items_text};CART=null}else if(r.action==="clear"){CART=null}else if(r.action==="cart"){CART=items;if(ORD&&ORD.status==="cancelled")ORD=null}
+    drawDesk()}catch(e){ty.remove();bub("⚠️ Couldn't reach the workflow. Make sure n8n and ngrok are running and the workflow is active.");step("Web Chat Webhook","request failed")}
+  BUSY=false;
+}
+$("#f").onsubmit=e=>{e.preventDefault();const t=$("#msg").value.trim();if(t)send(t)};
+$("#desk").onclick=async e=>{const b=e.target.closest("[data-s]");if(!b||!ORD||BUSY)return;b.disabled=true;
+  step("Kitchen Update (web)",`status → ${b.dataset.s}`);
+  try{const r=await api("/fenjan-web-kitchen",{order_id:ORD.id,status:b.dataset.s});
+    if(r.ok){ORD.status=r.status;step("Update Order","Orders row updated");bub(r.message,"push");step("Message Customer","status message sent")}else step("Rejected",r.error||"not allowed");drawDesk()}
+  catch(x){step("Kitchen Update (web)","request failed");drawDesk()}};
+$("#reset").onclick=()=>{SID=newSid();try{sessionStorage.setItem("fsid",SID)}catch(e){}ORD=null;CART=null;$("#chat").innerHTML='<div class="m" dir="auto">New chat started ☕ Say "hi" to see the menu.</div>';$("#log").innerHTML='<div class="ph"><span>🧪</span>Send a message to watch the workflow run.</div>';drawDesk()};
+/* polish */
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}}),{threshold:.12});$$(".rv").forEach(n=>io.observe(n));
+const co=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){const n=e.target,to=+n.dataset.n;let i=0;const t=setInterval(()=>{n.textContent=Math.min(to,i+=Math.ceil(to/30));if(i>=to)clearInterval(t)},35);co.unobserve(n)}}));$$("[data-n]").forEach(n=>co.observe(n));
+const secs=["home","menu","live","how"].map(i=>document.getElementById(i));
+addEventListener("scroll",()=>{let c="home";secs.forEach(s=>{if(s.getBoundingClientRect().top<160)c=s.id});$$(".links a").forEach(a=>a.classList.toggle("on",a.getAttribute("href")==="#"+c))},{passive:true});
+drawMenu();loadMenu().then(drawMenu);
+</script>
+</body>
+</html>
