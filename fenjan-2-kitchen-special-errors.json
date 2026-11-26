@@ -1,0 +1,1288 @@
+{
+  "name": "Fenjan 2 · Kitchen, Daily Special & Errors",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "fenjan-kitchen",
+        "formTitle": "Fenjan kitchen · update an order",
+        "formDescription": "The customer gets a Messenger/Instagram message as soon as you submit.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Order ID",
+              "fieldName": "order_id",
+              "placeholder": "F-261119-AB12",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Status",
+              "fieldName": "status",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "preparing"
+                  },
+                  {
+                    "option": "ready"
+                  },
+                  {
+                    "option": "out_for_delivery"
+                  },
+                  {
+                    "option": "cancelled"
+                  }
+                ]
+              },
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Note for the customer (optional)",
+              "fieldName": "note"
+            }
+          ]
+        },
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "fenjan-001",
+      "name": "Kitchen Update",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SPREADSHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Orders",
+          "mode": "name"
+        },
+        "options": {},
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "order_id",
+              "lookupValue": "={{ String($json.order_id || $json['Order ID'] || '').trim().toUpperCase() }}"
+            }
+          ]
+        }
+      },
+      "id": "fenjan-002",
+      "name": "Find Order",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        240,
+        0
+      ],
+      "retryOnFail": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const f = $('Kitchen Update').first().json;\nconst id = String(f.order_id || f['Order ID'] || '').trim().toUpperCase(), status = f.status || f['Status'], note = String(f.note || f['Note for the customer (optional)'] || '').trim().slice(0, 300);\nconst o = $input.all().map(i => i.json).find(r => String(r.order_id || '').toUpperCase() === id);\nconst problems = [];\nif (!/^F-\\d{6}-[A-Z0-9]{4}$/.test(id)) problems.push('Order ID should look like F-261119-AB12');\nelse if (!o) problems.push(`Order ${id} was not found in the Orders sheet`);\nelse if (o.status === 'cancelled' && status !== 'cancelled') problems.push(`Order ${id} is already cancelled`);\nif (o && status === 'out_for_delivery' && o.fulfilment !== 'delivery') problems.push(`Order ${id} is a pickup order`);\nconst ar = o?.language === 'ar';\nconst t = (en, a) => ar ? a : en;\nconst msgs = {\n  preparing: t(`👩‍🍳 We are preparing your order ${id} now.`, `👩‍🍳 طلبك ${id} بيتحضر دلوقتي.`),\n  ready: t(`☕ Your order ${id} is ready for pickup! See you at Fenjan.`, `☕ طلبك ${id} جاهز للاستلام! نورتنا في فنجان.`),\n  out_for_delivery: t(`🛵 Your order ${id} is on the way to ${o?.address || 'you'}.`, `🛵 طلبك ${id} في الطريق ليك على ${o?.address || 'عنوانك'}.`),\n  cancelled: t(`😔 Sorry, we had to cancel order ${id}. Reply here and we will sort it out.`, `😔 آسفين، اضطرينا نلغي الطلب ${id}. ردّ علينا هنا وهنحلها.`),\n};\nreturn [{ json: { ok: problems.length === 0, problems, order_id: id, status, customer_id: o?.customer_id || '', platform: o?.platform || '',\n  message: (msgs[status] || '') + (note ? '\\n' + note : ''), now: $now.setZone('Africa/Cairo').toFormat('yyyy-MM-dd HH:mm') } }];"
+      },
+      "id": "fenjan-003",
+      "name": "Check Order",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c-Order ",
+              "leftValue": "={{ $json.ok }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fenjan-004",
+      "name": "Order OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const c = $('Check Order').first().json;\nreturn [{ json: { order_id: c.order_id, status: c.status, updated_at: c.now } }];"
+      },
+      "id": "fenjan-005",
+      "name": "Status Row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SPREADSHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Orders",
+          "mode": "name"
+        },
+        "options": {
+          "cellFormat": "RAW"
+        },
+        "operation": "appendOrUpdate",
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "order_id"
+          ],
+          "schema": [
+            {
+              "id": "order_id",
+              "displayName": "order_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "platform",
+              "displayName": "platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "customer_id",
+              "displayName": "customer_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "language",
+              "displayName": "language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "items",
+              "displayName": "items",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subtotal_egp",
+              "displayName": "subtotal_egp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "delivery_egp",
+              "displayName": "delivery_egp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_egp",
+              "displayName": "total_egp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fulfilment",
+              "displayName": "fulfilment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "address",
+              "displayName": "address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "fenjan-006",
+      "name": "Update Order",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1200,
+        0
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v21.0",
+        "node": "YOUR_FACEBOOK_PAGE_ID",
+        "edge": "messages",
+        "httpRequestMethod": "POST",
+        "options": {
+          "queryParametersJson": "={{ JSON.stringify({ messaging_type: 'RESPONSE', recipient: JSON.stringify({ id: $('Check Order').first().json.customer_id }), message: JSON.stringify({ text: $('Check Order').first().json.message }) }) }}"
+        }
+      },
+      "id": "fenjan-007",
+      "name": "Message Customer",
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        1440,
+        0
+      ],
+      "disabled": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c-Delive",
+              "leftValue": "={{ Number($json.statusCode || 0) < 400 && !$json.error }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fenjan-008",
+      "name": "Delivered?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1680,
+        -60
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "Customer notified ✅",
+        "completionMessage": "={{ 'Order ' + $('Check Order').first().json.order_id + ' is now ' + $('Check Order').first().json.status + ' and the customer got a ' + $('Check Order').first().json.platform + ' message.' }}",
+        "options": {}
+      },
+      "id": "fenjan-009",
+      "name": "Done Page",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        -120
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "Status saved, message not sent",
+        "completionMessage": "={{ 'Order ' + $('Check Order').first().json.order_id + ' was updated, but Meta refused the message (usually the customer has not written in the last 24 hours). Please reply from the page inbox.' }}",
+        "options": {}
+      },
+      "id": "fenjan-010",
+      "name": "Message Failed Page",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        1920,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "completion",
+        "completionTitle": "Nothing was changed",
+        "completionMessage": "={{ 'Please fix: ' + $json.problems.join('; ') }}",
+        "options": {}
+      },
+      "id": "fenjan-011",
+      "name": "Rejected Page",
+      "type": "n8n-nodes-base.form",
+      "typeVersion": 1,
+      "position": [
+        960,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fenjan-web-kitchen",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "fenjan-012",
+      "name": "Web Kitchen Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SPREADSHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Orders",
+          "mode": "name"
+        },
+        "options": {},
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "order_id",
+              "lookupValue": "={{ String($json.body.order_id || '').trim().toUpperCase() }}"
+            }
+          ]
+        }
+      },
+      "id": "fenjan-013",
+      "name": "Find Web Order",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        240,
+        420
+      ],
+      "retryOnFail": true,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const b = $('Web Kitchen Webhook').first().json.body || {};\nconst sid = 'web-' + String(b.session || '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 16);\nconst id = String(b.order_id || '').trim().toUpperCase(), status = b.status;\nconst o = $input.all().map(i => i.json).find(r => String(r.order_id || '').toUpperCase() === id);\nconst ok = !!o && String(o.customer_id) === sid && ['preparing', 'ready', 'out_for_delivery', 'cancelled'].includes(status) && !(status === 'out_for_delivery' && o.fulfilment !== 'delivery');\nconst ar = o?.language === 'ar';\nconst t = (en, a) => ar ? a : en;\nconst msgs = {\n  preparing: t(`👩‍🍳 We are preparing your order ${id} now.`, `👩‍🍳 طلبك ${id} بيتحضر دلوقتي.`),\n  ready: t(`☕ Your order ${id} is ready for pickup! See you at Fenjan.`, `☕ طلبك ${id} جاهز للاستلام! نورتنا في فنجان.`),\n  out_for_delivery: t(`🛵 Your order ${id} is on the way to ${o?.address || 'you'}.`, `🛵 طلبك ${id} في الطريق ليك على ${o?.address || 'عنوانك'}.`),\n  cancelled: t(`😔 Sorry, we had to cancel order ${id}. Reply here and we will sort it out.`, `😔 آسفين، اضطرينا نلغي الطلب ${id}. ردّ علينا هنا وهنحلها.`),\n};\nreturn [{ json: { ok, order_id: id, status, message: msgs[status] || '', error: 'Order not found for this session, or status not allowed', now: $now.setZone('Africa/Cairo').toFormat('yyyy-MM-dd HH:mm') } }];"
+      },
+      "id": "fenjan-014",
+      "name": "Web Check",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c-Web Or",
+              "leftValue": "={{ $json.ok }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "fenjan-015",
+      "name": "Web Order OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        720,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const c = $('Web Check').first().json;\nreturn [{ json: { order_id: c.order_id, status: c.status, updated_at: c.now } }];"
+      },
+      "id": "fenjan-016",
+      "name": "Web Status Row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SPREADSHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Orders",
+          "mode": "name"
+        },
+        "options": {
+          "cellFormat": "RAW"
+        },
+        "operation": "appendOrUpdate",
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "order_id"
+          ],
+          "schema": [
+            {
+              "id": "order_id",
+              "displayName": "order_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "platform",
+              "displayName": "platform",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "customer_id",
+              "displayName": "customer_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "language",
+              "displayName": "language",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "items",
+              "displayName": "items",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subtotal_egp",
+              "displayName": "subtotal_egp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "delivery_egp",
+              "displayName": "delivery_egp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "total_egp",
+              "displayName": "total_egp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fulfilment",
+              "displayName": "fulfilment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "address",
+              "displayName": "address",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "fenjan-017",
+      "name": "Update Web Order",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1200,
+        420
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, order_id: $('Web Check').first().json.order_id, status: $('Web Check').first().json.status, message: $('Web Check').first().json.message }) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "fenjan-018",
+      "name": "Web Kitchen Done",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1440,
+        420
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: false, error: $('Web Check').first().json.error }) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "id": "fenjan-019",
+      "name": "Web Kitchen Rejected",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        960,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "id": "fenjan-020",
+      "name": "Every Morning 9:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        820
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SPREADSHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Specials",
+          "mode": "name"
+        },
+        "options": {}
+      },
+      "id": "fenjan-021",
+      "name": "Read Specials",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        240,
+        820
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const today = $now.setZone('Africa/Cairo').toFormat('yyyy-MM-dd');\nconst row = $input.all().map(i => i.json).find(r => String(r.date).trim() === today && String(r.posted).trim().toLowerCase() !== 'yes' && String(r.text || '').trim());\nreturn row ? [{ json: { date: today, text: String(row.text).slice(0, 2000) } }] : [];"
+      },
+      "id": "fenjan-022",
+      "name": "Pick Today's Special",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        820
+      ]
+    },
+    {
+      "parameters": {
+        "graphApiVersion": "v21.0",
+        "node": "YOUR_FACEBOOK_PAGE_ID",
+        "edge": "feed",
+        "httpRequestMethod": "POST",
+        "options": {
+          "queryParametersJson": "={{ JSON.stringify({ message: $json.text }) }}"
+        }
+      },
+      "id": "fenjan-023",
+      "name": "Post to Facebook Page",
+      "type": "n8n-nodes-base.facebookGraphApi",
+      "typeVersion": 1,
+      "position": [
+        720,
+        820
+      ],
+      "disabled": true,
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "if (Number($json.statusCode || 0) >= 400 || $json.error) throw new Error('Facebook refused the daily post: ' + String($json.error?.message || $json.headers?.['www-authenticate'] || 'unknown reason').slice(0, 300));\nreturn [{ json: { date: $(\"Pick Today's Special\").first().json.date, posted: 'yes', post_id: $json.id || '' } }];"
+      },
+      "id": "fenjan-024",
+      "name": "Posted Row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        820
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SPREADSHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Specials",
+          "mode": "name"
+        },
+        "options": {
+          "cellFormat": "RAW"
+        },
+        "operation": "appendOrUpdate",
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "date"
+          ],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "text",
+              "displayName": "text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "posted",
+              "displayName": "posted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "post_id",
+              "displayName": "post_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "fenjan-025",
+      "name": "Mark Posted",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        1200,
+        820
+      ],
+      "retryOnFail": true
+    },
+    {
+      "parameters": {},
+      "id": "fenjan-026",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        1100
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const e = $json.execution || {}, wf = $json.workflow || {};\nreturn [{ json: { time: $now.setZone('Africa/Cairo').toFormat('yyyy-MM-dd HH:mm'), workflow: wf.name || '', node: e.lastNodeExecuted || $json.trigger?.node?.name || '',\n  message: String(e.error?.message || $json.trigger?.error?.message || 'Unknown error').slice(0, 400), execution_url: e.url || '' } }];"
+      },
+      "id": "fenjan-027",
+      "name": "Error Row",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        1100
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_SPREADSHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Errors",
+          "mode": "name"
+        },
+        "options": {
+          "cellFormat": "RAW"
+        },
+        "operation": "append",
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "time",
+              "displayName": "time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "workflow",
+              "displayName": "workflow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "node",
+              "displayName": "node",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "execution_url",
+              "displayName": "execution_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "id": "fenjan-028",
+      "name": "Log Error",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        480,
+        1100
+      ],
+      "retryOnFail": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "YOUR_TELEGRAM_CHAT_ID",
+        "text": "={{ '⚠️ Fenjan error in ' + $('Error Row').first().json.workflow + ' → ' + $('Error Row').first().json.node + '\\n' + $('Error Row').first().json.message + '\\n' + $('Error Row').first().json.execution_url }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "fenjan-029",
+      "name": "Alert Team",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        1100
+      ],
+      "retryOnFail": true
+    }
+  ],
+  "connections": {
+    "Kitchen Update": {
+      "main": [
+        [
+          {
+            "node": "Find Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Order": {
+      "main": [
+        [
+          {
+            "node": "Check Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Order": {
+      "main": [
+        [
+          {
+            "node": "Order OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status Row": {
+      "main": [
+        [
+          {
+            "node": "Update Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Order": {
+      "main": [
+        [
+          {
+            "node": "Message Customer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delivered?": {
+      "main": [
+        [
+          {
+            "node": "Done Page",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Message Failed Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Order OK?": {
+      "main": [
+        [
+          {
+            "node": "Status Row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rejected Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message Customer": {
+      "main": [
+        [
+          {
+            "node": "Delivered?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Message Failed Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web Kitchen Webhook": {
+      "main": [
+        [
+          {
+            "node": "Find Web Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Web Order": {
+      "main": [
+        [
+          {
+            "node": "Web Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web Check": {
+      "main": [
+        [
+          {
+            "node": "Web Order OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web Status Row": {
+      "main": [
+        [
+          {
+            "node": "Update Web Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Web Order": {
+      "main": [
+        [
+          {
+            "node": "Web Kitchen Done",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Web Order OK?": {
+      "main": [
+        [
+          {
+            "node": "Web Status Row",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Web Kitchen Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every Morning 9:00": {
+      "main": [
+        [
+          {
+            "node": "Read Specials",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Specials": {
+      "main": [
+        [
+          {
+            "node": "Pick Today's Special",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Today's Special": {
+      "main": [
+        [
+          {
+            "node": "Post to Facebook Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Post to Facebook Page": {
+      "main": [
+        [
+          {
+            "node": "Posted Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Posted Row": {
+      "main": [
+        [
+          {
+            "node": "Mark Posted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Error Row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Row": {
+      "main": [
+        [
+          {
+            "node": "Log Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Error": {
+      "main": [
+        [
+          {
+            "node": "Alert Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "timezone": "Africa/Cairo"
+  },
+  "meta": {}
+}
